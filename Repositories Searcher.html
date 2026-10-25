@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repositories Searcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef1f4;
+      --panel: #fff;
+      --ink: #1b2430;
+      --muted: #5d6978;
+      --line: #d5dbe2;
+      --accent: #2d5bff;
+      --accent-ink: #fff;
+      color-scheme: light
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --bg: #131820;
+        --panel: #1b222c;
+        --ink: #e8edf3;
+        --muted: #91a0b1;
+        --line: #2c3643;
+        --accent: #6d8bff;
+        --accent-ink: #0d1220;
+        color-scheme: dark
+      }
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 20px 80px
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      line-height: 1.05;
+      font-weight: 800;
+      margin: 0 0 12px;
+      letter-spacing: -.02em
+    }
+
+    .lead {
+      color: var(--muted);
+      margin: 0 0 28px;
+      max-width: 52ch
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+      color: inherit
+    }
+
+    #link {
+      flex: 1 1 280px;
+      padding: 14px 16px;
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      background: var(--panel)
+    }
+
+    button {
+      padding: 14px 22px;
+      border: 2px solid var(--accent);
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer
+    }
+
+    button:hover {
+      filter: brightness(1.08)
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    #status {
+      margin: 20px 0;
+      color: var(--muted)
+    }
+
+    #status.err {
+      color: #c4302b;
+      font-weight: 600
+    }
+
+    .profile {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      margin: 36px 0 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--ink)
+    }
+
+    .profile img {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 2px solid var(--ink)
+    }
+
+    .profile h2 {
+      margin: 0;
+      font-size: 1.6rem
+    }
+
+    .profile p {
+      margin: 2px 0 0;
+      color: var(--muted)
+    }
+
+    .profile a {
+      color: var(--accent)
+    }
+
+    .tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px
+    }
+
+    .tools input,
+    .tools select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel)
+    }
+
+    .tools input {
+      flex: 1 1 200px
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0
+    }
+
+    li {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    li a.name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none
+    }
+
+    li a.name:hover {
+      color: var(--accent);
+      text-decoration: underline
+    }
+
+    li p {
+      margin: 4px 0 8px;
+      color: var(--muted);
+      max-width: 70ch
+    }
+
+    .meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: .9rem;
+      color: var(--muted)
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background: var(--muted)
+    }
+
+    .badge {
+      font-size: .75rem;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      padding: 1px 8px;
+      margin-left: 8px;
+      color: var(--muted);
+      vertical-align: middle
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Repositories Searcher</h1>
+    <p class="lead">Встав посилання на профіль GitHub або просто нікнейм — і отримаєш список усіх публічних
+      репозиторіїв.</p>
+
+    <form id="form">
+      <input id="link" type="text" placeholder="https://github.com/torvalds" aria-label="Посилання на профіль GitHub"
+        autocomplete="off" required>
+      <button type="submit">Показати репозиторії</button>
+    </form>
+
+    <div id="status" role="status"></div>
+    <div id="result"></div>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const COLORS = { JavaScript: "#f1e05a", TypeScript: "#3178c6", Python: "#3572a5", Java: "#b07219", HTML: "#e34c26", CSS: "#563d7c", Go: "#00add8", Rust: "#dea584", "C++": "#f34b7d", C: "#8a8a8a", "C#": "#178600", PHP: "#4f5d95", Ruby: "#701516", Kotlin: "#a97bff", Swift: "#f05138", Shell: "#89e051", Vue: "#41b883", Dart: "#00b4ab" };
+    let repos = [];
+
+    function parseUser(input) {
+      let s = input.trim();
+      if (!s) return null;
+      try {
+        const u = new URL(/^https?:\/\//i.test(s) ? s : "https://" + s);
+        if (/github\.com$/i.test(u.hostname)) {
+          const part = u.pathname.split("/").filter(Boolean)[0];
+          return part || null;
+        }
+      } catch (e) { }
+      s = s.replace(/^@/, "");
+      return /^[A-Za-z0-9-]{1,39}$/.test(s) ? s : null;
+    }
+
+    function esc(t) { return String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])) }
+
+    async function load(user) {
+      const status = $("status"); status.className = ""; $("result").innerHTML = "";
+      status.textContent = "Завантажую…";
+      try {
+        const uRes = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}`);
+        if (uRes.status === 404) throw new Error("Користувача не знайдено. Перевір посилання.");
+        if (uRes.status === 403) throw new Error("Ліміт запитів GitHub вичерпано. Спробуй за годину.");
+        if (!uRes.ok) throw new Error("Не вдалося отримати профіль.");
+        const profile = await uRes.json();
+
+        repos = [];
+        for (let page = 1; page <= 10; page++) {
+          const r = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}/repos?per_page=100&page=${page}&sort=updated`);
+          if (!r.ok) throw new Error("Не вдалося отримати репозиторії.");
+          const chunk = await r.json();
+          repos.push(...chunk);
+          if (chunk.length < 100) break;
+        }
+        status.textContent = "";
+        render(profile);
+        history.replaceState(null, "", "?user=" + encodeURIComponent(user));
+      } catch (e) {
+        status.className = "err";
+        status.textContent = e.message || "Щось пішло не так. Перевір з’єднання.";
+      }
+    }
+
+    function render(p) {
+      const langs = [...new Set(repos.map(r => r.language).filter(Boolean))].sort();
+      $("result").innerHTML = `
+    <div class="profile">
+      <img src="${esc(p.avatar_url)}" alt="">
+      <div>
+        <h2>${esc(p.name || p.login)}</h2>
+        <p><a href="${esc(p.html_url)}" target="_blank" rel="noopener">@${esc(p.login)}</a> · ${p.public_repos} репозиторіїв${p.bio ? " · " + esc(p.bio) : ""}</p>
+      </div>
+    </div>
+    <div class="tools">
+      <input id="q" type="search" placeholder="Пошук по назві чи опису" aria-label="Пошук">
+      <select id="lang" aria-label="Мова"><option value="">Усі мови</option>${langs.map(l => `<option>${esc(l)}</option>`).join("")}</select>
+      <select id="sort" aria-label="Сортування">
+        <option value="updated">Спершу оновлені</option>
+        <option value="stars">Спершу з найбільше зірок</option>
+        <option value="name">За назвою</option>
+      </select>
+    </div>
+    <ul id="list"></ul>`;
+      ["q", "lang", "sort"].forEach(id => $(id).addEventListener("input", draw));
+      draw();
+    }
+
+    function draw() {
+      const q = $("q").value.toLowerCase(), lang = $("lang").value, sort = $("sort").value;
+      const list = repos.filter(r =>
+        (!lang || r.language === lang) &&
+        (!q || (r.name + " " + (r.description || "")).toLowerCase().includes(q))
+      ).sort((a, b) =>
+        sort === "stars" ? b.stargazers_count - a.stargazers_count :
+          sort === "name" ? a.name.localeCompare(b.name) :
+            new Date(b.pushed_at) - new Date(a.pushed_at)
+      );
+      $("list").innerHTML = list.length ? list.map(r => `
+    <li>
+      <a class="name" href="${esc(r.html_url)}" target="_blank" rel="noopener">${esc(r.name)}</a>${r.fork ? '<span class="badge">fork</span>' : ""}${r.archived ? '<span class="badge">архів</span>' : ""}
+      ${r.description ? `<p>${esc(r.description)}</p>` : ""}
+      <div class="meta">
+        ${r.language ? `<span><i class="dot" style="background:${COLORS[r.language] || "var(--muted)"}"></i>${esc(r.language)}</span>` : ""}
+        <span>★ ${r.stargazers_count}</span>
+        <span>Форки: ${r.forks_count}</span>
+        <span>Оновлено ${new Date(r.pushed_at).toLocaleDateString("uk-UA")}</span>
+      </div>
+    </li>`).join("") : "<li>Нічого не знайдено за цими фільтрами.</li>";
+    }
+
+    $("form").addEventListener("submit", e => {
+      e.preventDefault();
+      const user = parseUser($("link").value);
+      if (!user) { $("status").className = "err"; $("status").textContent = "Не схоже на посилання GitHub. Приклад: https://github.com/torvalds"; return; }
+      load(user);
+    });
+
+    const initial = new URLSearchParams(location.search).get("user");
+    if (initial) { $("link").value = "https://github.com/" + initial; load(initial); }
+  </script>
+</body>
+
+</html>
